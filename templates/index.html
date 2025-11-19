@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redimensionador de Artes para Redes Sociais</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📐 Redimensionador de Artes para Redes Sociais</h1>
+            <p>Transforme sua arte de marketing em diversos tamanhos para diferentes plataformas</p>
+        </header>
+
+        <main>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-section">
+                    <label for="fileInput" class="file-label">
+                        <div class="upload-area" id="uploadArea">
+                            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p>Clique para selecionar ou arraste sua imagem aqui</p>
+                            <span class="file-types">PNG, JPG, JPEG, WEBP (máx. 16MB)</span>
+                        </div>
+                        <input type="file" id="fileInput" name="file" accept="image/png,image/jpeg,image/jpg,image/webp" required>
+                    </label>
+
+                    <div id="preview" class="preview" style="display: none;">
+                        <img id="previewImage" src="" alt="Preview">
+                        <button type="button" class="remove-btn" onclick="removeImage()">✕ Remover</button>
+                    </div>
+                </div>
+
+                <div class="options-section">
+                    <label class="checkbox-option">
+                        <input type="checkbox" id="maintainAspect" checked>
+                        <span>Manter proporção da imagem (adicionar bordas brancas se necessário)</span>
+                    </label>
+                </div>
+
+                <div class="formats-section">
+                    <h2>Selecione os formatos desejados:</h2>
+
+                    <div class="platform-actions">
+                        <button type="button" onclick="selectAll()">Selecionar Todos</button>
+                        <button type="button" onclick="deselectAll()">Desmarcar Todos</button>
+                    </div>
+
+                    {% for platform, formats in formats.items() %}
+                    <div class="platform-group">
+                        <h3>{{ platform }}</h3>
+                        <div class="formats-grid">
+                            {% for format_name, size in formats.items() %}
+                            <label class="format-option">
+                                <input type="checkbox" name="formats[]" value="{{ format_name }}" checked>
+                                <span class="format-name">{{ format_name }}</span>
+                                <span class="format-size">{{ size[0] }}×{{ size[1] }}px</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    🎨 Gerar Imagens Redimensionadas
+                </button>
+
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Processando suas imagens...</p>
+                </div>
+
+                <div id="error" class="error" style="display: none;"></div>
+            </form>
+        </main>
+
+        <footer>
+            <p>Desenvolvido para facilitar a criação de artes para múltiplas plataformas</p>
+        </footer>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const preview = document.getElementById('preview');
+        const previewImage = document.getElementById('previewImage');
+        const uploadForm = document.getElementById('uploadForm');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                showPreview(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                showPreview(e.target.files[0]);
+            }
+        });
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                uploadArea.parentElement.style.display = 'none';
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            fileInput.value = '';
+            previewImage.src = '';
+            uploadArea.parentElement.style.display = 'block';
+            preview.style.display = 'none';
+            error.style.display = 'none';
+        }
+
+        function selectAll() {
+            document.querySelectorAll('input[name="formats[]"]').forEach(cb => cb.checked = true);
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('input[name="formats[]"]').forEach(cb => cb.checked = false);
+        }
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('maintain_aspect', document.getElementById('maintainAspect').checked);
+
+            const selectedFormats = Array.from(document.querySelectorAll('input[name="formats[]"]:checked'))
+                .map(cb => cb.value);
+
+            if (selectedFormats.length === 0) {
+                showError('Selecione pelo menos um formato');
+                return;
+            }
+
+            selectedFormats.forEach(format => {
+                formData.append('formats[]', format);
+            });
+
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            error.style.display = 'none';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro ao processar imagem');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'redimensionadas.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
