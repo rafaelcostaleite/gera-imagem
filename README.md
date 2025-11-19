@@ -58,12 +58,52 @@ Aplicativo web que transforma artes de marketing em diversos tamanhos para que s
 
 ## Instalação
 
-### Pré-requisitos
+### Opção 1: Docker (Recomendado)
 
+#### Pré-requisitos
+- Docker
+- Docker Compose
+
+#### Passos
+
+1. Clone o repositório:
+```bash
+git clone <url-do-repositorio>
+cd gera-imagem
+```
+
+2. Inicie a aplicação com Docker Compose:
+```bash
+docker-compose up -d
+```
+
+3. Acesse no navegador:
+```
+http://localhost:5000
+```
+
+Para parar a aplicação:
+```bash
+docker-compose down
+```
+
+Para visualizar os logs:
+```bash
+docker-compose logs -f
+```
+
+Para reconstruir a imagem após mudanças:
+```bash
+docker-compose up -d --build
+```
+
+### Opção 2: Instalação Local
+
+#### Pré-requisitos
 - Python 3.8 ou superior
 - pip (gerenciador de pacotes Python)
 
-### Passos
+#### Passos
 
 1. Clone o repositório:
 ```bash
@@ -84,19 +124,21 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
-## Como Usar
-
-1. Inicie o servidor:
+4. Inicie o servidor:
 ```bash
 python app.py
 ```
 
-2. Acesse no navegador:
+5. Acesse no navegador:
 ```
 http://localhost:5000
 ```
 
-3. Siga os passos na interface:
+## Como Usar
+
+1. Acesse a aplicação no navegador (http://localhost:5000)
+
+2. Siga os passos na interface:
    - Faça upload da sua arte de marketing
    - Selecione os formatos desejados
    - Escolha se deseja manter a proporção da imagem
@@ -117,6 +159,9 @@ Quando desativada, a imagem é esticada para preencher completamente o tamanho a
 gera-imagem/
 ├── app.py              # Aplicação Flask principal
 ├── requirements.txt    # Dependências Python
+├── Dockerfile          # Configuração do container Docker
+├── docker-compose.yml  # Orquestração de containers
+├── .dockerignore       # Arquivos ignorados pelo Docker
 ├── templates/
 │   └── index.html     # Interface web
 ├── static/
@@ -130,6 +175,7 @@ gera-imagem/
 - **Backend**: Flask (Python)
 - **Processamento de Imagens**: Pillow (PIL)
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **Containerização**: Docker & Docker Compose
 
 ## Limitações
 
