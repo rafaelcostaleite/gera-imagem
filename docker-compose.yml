@@ -1,28 +1,73 @@
 version: '3.8'
 
 services:
-  web:
-    build: .
-    container_name: gera-imagem-app
-    ports:
-      - "5000:5000"
-    volumes:
-      # Montar código para desenvolvimento (opcional - comentar em produção)
-      - .:/app
-      # Volumes persistentes para uploads e output
-      - uploads-data:/app/uploads
-      - output-data:/app/output
+  # Banco de dados PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: it-cases-db
     environment:
-      - FLASK_ENV=development
-      - PYTHONUNBUFFERED=1
-    restart: unless-stopped
+      POSTGRES_DB: it_cases
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - it-cases-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Python (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: it-cases-backend
+    environment:
+      DATABASE_URL: postgresql://admin:admin123@db:5432/it_cases
+      SECRET_KEY: your-secret-key-change-in-production
+      AD_SERVER: ldap://your-ad-server.com
+      AD_DOMAIN: your-domain.com
+      AD_BASE_DN: DC=your-domain,DC=com
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - it-cases-network
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: it-cases-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - it-cases-network
+    depends_on:
+      - backend
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+networks:
+  it-cases-network:
+    driver: bridge
 
 volumes:
-  uploads-data:
-  output-data:
+  postgres_data:

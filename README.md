@@ -1,70 +1,127 @@
-# Redimensionador de Artes para Redes Sociais
+# Sistema de Gestão de Casos TI
 
-Aplicativo web que transforma artes de marketing em diversos tamanhos para que sejam utilizados em diferentes plataformas e redes sociais.
+Sistema completo de gerenciamento de casos (chamados) para equipes de TI, baseado em conceitos de ITIL, com planejamento de sprints e controle de apontamentos de horas.
 
-## Funcionalidades
+## Objetivo
 
-- Upload de imagens (PNG, JPG, JPEG, WEBP)
-- Redimensionamento automático para múltiplos formatos
-- Suporte para as principais redes sociais:
-  - Instagram (Post, Story, Reels, Landscape)
-  - Facebook (Post, Cover, Story, Event Cover)
-  - Google Ads (diversos tamanhos de banners)
-  - LinkedIn (Post, Cover, Story)
-  - Twitter/X (Post, Header)
-  - YouTube (Thumbnail, Banner)
-  - TikTok (Video)
-- Opção de manter proporção da imagem original
-- Download de todas as imagens redimensionadas em um arquivo ZIP
-- Interface intuitiva com drag & drop
+Criar um sistema de gestão de casos para que a equipe interna de TI efetue o atendimento de demandas de forma organizada, seguindo as melhores práticas de ITIL, com recursos de:
 
-## Formatos Suportados
+- Gerenciamento de casos (chamados)
+- Autenticação via Active Directory (Microsoft Exchange)
+- Controle de apontamentos de horas
+- Planejamento de sprints
+- Classificação e categorização de casos
+- Rastreamento de status e fluxos de trabalho
 
-### Instagram
-- Post (Quadrado): 1080×1080px
-- Story: 1080×1920px
-- Reels: 1080×1920px
-- Landscape: 1080×566px
+## Arquitetura
 
-### Facebook
-- Post: 1200×630px
-- Cover: 820×312px
-- Story: 1080×1920px
-- Event Cover: 1920×1005px
+### Backend
+- **Python 3.11** com **FastAPI**
+- **PostgreSQL** para banco de dados
+- **SQLAlchemy** como ORM
+- **Alembic** para migrações
+- **LDAP3** para autenticação Active Directory
+- **JWT** para autenticação de sessões
 
-### Google Ads
-- Medium Rectangle: 300×250px
-- Leaderboard: 728×90px
-- Wide Skyscraper: 160×600px
-- Large Rectangle: 336×280px
-- Half Page: 300×600px
-- Large Leaderboard: 970×90px
+### Frontend
+- **React 18** com **JavaScript**
+- **React Router** para navegação
+- **Axios** para chamadas à API
+- **Context API** para gerenciamento de estado
 
-### LinkedIn
-- Post: 1200×627px
-- Cover: 1584×396px
-- Story: 1080×1920px
+### Infraestrutura
+- **Docker** e **Docker Compose** para containerização
+- **Git** para versionamento
 
-### Twitter/X
-- Post: 1200×675px
-- Header: 1500×500px
+## Funcionalidades Principais
 
-### YouTube
-- Thumbnail: 1280×720px
-- Banner: 2560×1440px
+### 1. Autenticação e Usuários
+- Login via Active Directory (Microsoft Exchange)
+- Autenticação JWT
+- Gerenciamento de sessões
+- Criação automática de usuários no primeiro login
 
-### TikTok
-- Video: 1080×1920px
+### 2. Gestão de Casos
+
+#### Tipos de Casos
+- **Estou com um problema** (corretivas)
+- **Tenho uma dúvida** (suporte)
+- **Quero pedir algo** (requisições/preventivas/intervenções)
+- **Solicitação de melhorias** (melhorias em sistemas)
+
+#### Categorias
+- Corretiva
+- Suporte
+- Requisições
+- Preventivas
+- Intervenções
+- Intervenção Extração de dados
+- Melhorias em sistemas
+
+#### Fluxo de Trabalho
+1. **Aberto**: Estágio inicial quando o caso é criado
+2. **Em atendimento**: Ativado automaticamente ao primeiro apontamento
+3. **Solucionado**: Quando o técnico resolve o caso
+4. **Concluído**: Fechamento automático após 30 dias de solução (não reversível)
+5. **Cancelado**: Disponível apenas para casos Abertos ou Em atendimento
+
+#### Alocação
+- **Dono do Caso**: Gestor da área responsável
+- **Equipe**: Equipe de atendimento
+- **Técnico Responsável**: Pessoa alocada para tratar o caso
+
+#### Classificação
+- Primeira etapa do atendimento realizada pelo analista
+- Define a categoria e pode alterar o tipo do caso
+- Define alocações (dono, equipe, técnico)
+
+### 3. Apontamentos de Tempo
+
+#### Campos
+- **Data**: Não pode ser futura ou em período fechado
+- **Horas**: Formato HH:MM (ex: 01:30)
+- **Horas Decimal**: Calculado automaticamente (ex: 01:30 = 1.5)
+- **Descrição**: Obrigatória
+- **Tipo de Tarefa**:
+  - 01-Levantamento/Documentação/Especificação
+  - 02-Parametrização/Desenvolvimento
+  - 03-Homologação/Teste/GMUD
+  - 04-Revisão em par
+  - 05-Revisão SM
+  - 06-Entrada em produção
+  - 0-Não classificado
+
+#### Regras
+- Não pode apontar em datas futuras
+- Não pode apontar em períodos fechados
+- Primeiro apontamento muda status do caso para "Em atendimento"
+- Validação de formato HH:MM
+
+### 4. Período de Fechamento
+- Controle de períodos fechados para apontamentos
+- Sistema aceita apenas apontamentos com datas posteriores ao último período fechado
+- Previne alterações em períodos já auditados
+
+### 5. Planejamento de Sprints
+- Criação e gerenciamento de sprints
+- Adição/remoção de casos às sprints
+- Visualização de casos por sprint
+- Marcação de sprints como concluídas
+- Dashboard de planejamento
+
+### 6. Árvore de Serviços
+- Organização hierárquica de serviços
+- Classificação de casos por serviço
+- Estrutura pai-filho para categorização
 
 ## Instalação
 
-### Opção 1: Docker (Recomendado)
-
-#### Pré-requisitos
+### Pré-requisitos
 - Docker
 - Docker Compose
+- Git
 
-#### Passos
+### Passos
 
 1. Clone o repositório:
 ```bash
@@ -72,129 +129,229 @@ git clone <url-do-repositorio>
 cd gera-imagem
 ```
 
-2. Inicie a aplicação com Docker Compose:
+2. Configure o arquivo de ambiente do backend:
+```bash
+cp backend/.env.example backend/.env
+```
+
+3. Edite o arquivo `backend/.env` com suas configurações de Active Directory:
+```env
+AD_SERVER=ldap://seu-servidor-ad.com
+AD_DOMAIN=seu-dominio.com
+AD_BASE_DN=DC=seu-dominio,DC=com
+SECRET_KEY=sua-chave-secreta-aqui
+```
+
+4. Inicie os containers:
 ```bash
 docker-compose up -d
 ```
 
-3. Acesse no navegador:
+5. Aguarde a inicialização dos serviços:
+- Backend: http://localhost:8000
+- Frontend: http://localhost:3000
+- Documentação da API: http://localhost:8000/docs
+
+6. Acesse a aplicação:
 ```
-http://localhost:5000
+http://localhost:3000
 ```
 
-Para parar a aplicação:
+### Comandos Úteis
+
+Parar os containers:
 ```bash
 docker-compose down
 ```
 
-Para visualizar os logs:
+Ver logs:
 ```bash
 docker-compose logs -f
 ```
 
-Para reconstruir a imagem após mudanças:
+Reconstruir após mudanças:
 ```bash
 docker-compose up -d --build
 ```
 
-### Opção 2: Instalação Local
-
-#### Pré-requisitos
-- Python 3.8 ou superior
-- pip (gerenciador de pacotes Python)
-
-#### Passos
-
-1. Clone o repositório:
+Acessar banco de dados:
 ```bash
-git clone <url-do-repositorio>
-cd gera-imagem
+docker exec -it it-cases-db psql -U admin -d it_cases
 ```
-
-2. Crie um ambiente virtual (recomendado):
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate  # Windows
-```
-
-3. Instale as dependências:
-```bash
-pip install -r requirements.txt
-```
-
-4. Inicie o servidor:
-```bash
-python app.py
-```
-
-5. Acesse no navegador:
-```
-http://localhost:5000
-```
-
-## Como Usar
-
-1. Acesse a aplicação no navegador (http://localhost:5000)
-
-2. Siga os passos na interface:
-   - Faça upload da sua arte de marketing
-   - Selecione os formatos desejados
-   - Escolha se deseja manter a proporção da imagem
-   - Clique em "Gerar Imagens Redimensionadas"
-   - Baixe o arquivo ZIP com todas as imagens
-
-## Opções de Redimensionamento
-
-### Manter Proporção (padrão)
-Quando ativada, a imagem original é redimensionada mantendo sua proporção. Se necessário, bordas brancas são adicionadas para preencher o tamanho final.
-
-### Esticar Imagem
-Quando desativada, a imagem é esticada para preencher completamente o tamanho alvo, podendo distorcer a imagem original.
 
 ## Estrutura do Projeto
 
 ```
 gera-imagem/
-├── app.py              # Aplicação Flask principal
-├── requirements.txt    # Dependências Python
-├── Dockerfile          # Configuração do container Docker
-├── docker-compose.yml  # Orquestração de containers
-├── .dockerignore       # Arquivos ignorados pelo Docker
-├── templates/
-│   └── index.html     # Interface web
-├── static/
-│   └── style.css      # Estilos CSS
-├── uploads/           # Pasta temporária para uploads (criada automaticamente)
-└── output/            # Pasta temporária para saída (criada automaticamente)
+├── backend/
+│   ├── app/
+│   │   ├── api/              # Rotas da API
+│   │   │   ├── auth.py       # Autenticação
+│   │   │   ├── cases.py      # Gestão de casos
+│   │   │   ├── time_entries.py  # Apontamentos
+│   │   │   └── sprints.py    # Sprints
+│   │   ├── core/             # Configurações centrais
+│   │   │   ├── config.py     # Configurações
+│   │   │   ├── database.py   # Conexão BD
+│   │   │   └── security.py   # JWT e segurança
+│   │   ├── models/           # Modelos do banco
+│   │   │   └── models.py     # Todos os modelos
+│   │   ├── schemas/          # Schemas Pydantic
+│   │   │   ├── auth.py
+│   │   │   ├── case.py
+│   │   │   ├── time_entry.py
+│   │   │   ├── sprint.py
+│   │   │   └── user.py
+│   │   ├── services/         # Lógica de negócio
+│   │   │   └── auth_service.py  # Autenticação AD
+│   │   └── main.py           # Aplicação principal
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── .env.example
+├── frontend/
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/       # Componentes React
+│   │   │   └── Layout.js
+│   │   ├── contexts/         # Context API
+│   │   │   └── AuthContext.js
+│   │   ├── pages/            # Páginas
+│   │   │   ├── Login.js
+│   │   │   ├── Dashboard.js
+│   │   │   └── NewCase.js
+│   │   ├── services/         # Serviços API
+│   │   │   └── api.js
+│   │   ├── styles/           # CSS
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml
+├── .gitignore
+└── README.md
 ```
 
-## Tecnologias Utilizadas
+## API Endpoints
 
-- **Backend**: Flask (Python)
-- **Processamento de Imagens**: Pillow (PIL)
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Containerização**: Docker & Docker Compose
+### Autenticação
+- `POST /api/v1/auth/login` - Login com AD
+- `POST /api/v1/auth/login-json` - Login com JSON
 
-## Limitações
+### Casos
+- `GET /api/v1/cases` - Listar casos
+- `POST /api/v1/cases` - Criar caso
+- `GET /api/v1/cases/{id}` - Obter caso
+- `PUT /api/v1/cases/{id}` - Atualizar caso
+- `POST /api/v1/cases/{id}/classify` - Classificar caso
+- `POST /api/v1/cases/{id}/status` - Atualizar status
+- `GET /api/v1/cases/my/cases` - Meus casos
 
-- Tamanho máximo de arquivo: 16MB
-- Formatos aceitos: PNG, JPG, JPEG, WEBP
+### Apontamentos
+- `GET /api/v1/time-entries` - Listar apontamentos
+- `POST /api/v1/time-entries` - Criar apontamento
+- `GET /api/v1/time-entries/{id}` - Obter apontamento
+- `PUT /api/v1/time-entries/{id}` - Atualizar apontamento
+- `DELETE /api/v1/time-entries/{id}` - Deletar apontamento
+- `GET /api/v1/time-entries/my` - Meus apontamentos
+
+### Sprints
+- `GET /api/v1/sprints` - Listar sprints
+- `POST /api/v1/sprints` - Criar sprint
+- `GET /api/v1/sprints/{id}` - Obter sprint
+- `PUT /api/v1/sprints/{id}` - Atualizar sprint
+- `POST /api/v1/sprints/{id}/cases` - Adicionar casos
+- `DELETE /api/v1/sprints/{id}/cases/{case_id}` - Remover caso
+- `POST /api/v1/sprints/{id}/complete` - Concluir sprint
+
+## Modelos de Dados
+
+### User (Usuário)
+- ID, username, email, full_name
+- is_active, is_superuser
+- Timestamps
+
+### Case (Caso)
+- ID, title, description
+- case_type, category, status
+- requester_id, owner_id, technician_id, team_id, service_id
+- created_at, updated_at, solved_at, closed_at, cancelled_at
+
+### TimeEntry (Apontamento)
+- ID, case_id, user_id
+- entry_date, hours_spent, hours_decimal
+- description, task_type
+- Timestamps
+
+### Sprint
+- ID, name, description
+- start_date, end_date
+- is_active, is_completed
+- Relacionamento muitos-para-muitos com Cases
+
+### Team (Equipe)
+- ID, name, description
+- is_active
+
+### Service (Serviço)
+- ID, name, description
+- parent_id (auto-relacionamento)
+- is_active
+
+### ClosingPeriod (Período de Fechamento)
+- ID, closing_date
+- description, created_by
+
+## Configuração do Active Directory
+
+Para configurar a autenticação com Active Directory, edite o arquivo `backend/.env`:
+
+```env
+AD_SERVER=ldap://seu-servidor-ad.com:389
+AD_DOMAIN=DOMINIO
+AD_BASE_DN=DC=dominio,DC=com
+AD_USE_SSL=False
+```
+
+Substitua pelos valores corretos do seu ambiente.
+
+## Segurança
+
+- Autenticação JWT com expiração configurável
+- Senhas nunca são armazenadas (autenticação via AD)
+- CORS configurado para origens específicas
+- Validação de dados com Pydantic
+- Proteção contra SQL Injection via SQLAlchemy
+- Headers de segurança configurados
 
 ## Próximas Melhorias
 
-- [ ] Adicionar mais formatos de redes sociais
-- [ ] Permitir personalização de tamanhos
-- [ ] Opção de adicionar marca d'água
-- [ ] Visualização prévia dos redimensionamentos
-- [ ] Suporte para processamento em lote
-- [ ] Opção de escolher cor de fundo (além de branco)
-- [ ] Suporte para imagens PNG com transparência
+- [ ] Relatórios e dashboards analíticos
+- [ ] Exportação de dados (Excel, CSV)
+- [ ] Notificações por email
+- [ ] SLA e métricas de performance
+- [ ] Anexos em casos
+- [ ] Comentários em casos
+- [ ] Histórico de mudanças
+- [ ] Filtros avançados
+- [ ] Busca full-text
+- [ ] Permissões granulares por perfil
+- [ ] Integração com outras ferramentas (Jira, Slack, etc)
+- [ ] API webhooks
+- [ ] Modo escuro
 
-## Contribuindo
+## Conceitos ITIL Implementados
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
+- Gerenciamento de Incidentes (casos tipo "problema")
+- Gerenciamento de Requisições de Serviço
+- Gerenciamento de Mudanças (melhorias)
+- Categorização de serviços
+- SLA e métricas de tempo
+- Gestão de conhecimento (base de casos)
+
+## Suporte e Contribuições
+
+Para reportar bugs ou sugerir melhorias, abra uma issue no repositório.
 
 ## Licença
 
