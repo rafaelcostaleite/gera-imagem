@@ -33,6 +33,8 @@ services:
       AD_SERVER: ldap://your-ad-server.com
       AD_DOMAIN: your-domain.com
       AD_BASE_DN: DC=your-domain,DC=com
+      DEVELOPMENT_MODE: "True"
+      DEV_DEFAULT_PASSWORD: "123456"
     volumes:
       - ./backend:/app
     ports:

@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     AD_BASE_DN: str = "DC=your-domain,DC=com"
     AD_USE_SSL: bool = False
 
+    # Desenvolvimento
+    DEVELOPMENT_MODE: bool = True  # True para usar senha padrão 123456
+    DEV_DEFAULT_PASSWORD: str = "123456"
+
     # Aplicação
     PROJECT_NAME: str = "Sistema de Gestão de Casos TI"
     VERSION: str = "1.0.0"

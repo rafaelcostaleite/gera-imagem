@@ -134,12 +134,32 @@ cd gera-imagem
 cp backend/.env.example backend/.env
 ```
 
-3. Edite o arquivo `backend/.env` com suas configurações de Active Directory:
+3. Edite o arquivo `backend/.env`:
+
+**Para Desenvolvimento (padrão):**
 ```env
+# Modo desenvolvimento - permite login com senha padrão 123456
+DEVELOPMENT_MODE=True
+DEV_DEFAULT_PASSWORD=123456
+
+# Configurações do AD (podem ser deixadas como estão em dev)
 AD_SERVER=ldap://seu-servidor-ad.com
 AD_DOMAIN=seu-dominio.com
 AD_BASE_DN=DC=seu-dominio,DC=com
 SECRET_KEY=sua-chave-secreta-aqui
+```
+
+**Para Produção:**
+```env
+# Desabilitar modo desenvolvimento - apenas autenticação AD
+DEVELOPMENT_MODE=False
+
+# Configurações do AD (obrigatórias)
+AD_SERVER=ldap://seu-servidor-ad.com
+AD_DOMAIN=seu-dominio.com
+AD_BASE_DN=DC=seu-dominio,DC=com
+AD_USE_SSL=True
+SECRET_KEY=sua-chave-secreta-forte-aqui
 ```
 
 4. Inicie os containers:
@@ -178,6 +198,34 @@ Acessar banco de dados:
 ```bash
 docker exec -it it-cases-db psql -U admin -d it_cases
 ```
+
+### Modo de Desenvolvimento
+
+O sistema possui um **modo de desenvolvimento** que facilita o teste e desenvolvimento sem necessidade de configurar um servidor Active Directory.
+
+**Como funciona:**
+
+Quando `DEVELOPMENT_MODE=True` (padrão no docker-compose.yml):
+- Qualquer usuário pode fazer login usando a senha padrão `123456`
+- O usuário é criado automaticamente no banco de dados
+- O email gerado será `usuario@dev.local`
+- Ainda é possível usar autenticação AD mesmo em modo dev
+
+**Exemplo de uso:**
+```
+Usuário: joao
+Senha: 123456
+```
+
+O usuário "joao" será criado automaticamente com:
+- Username: joao
+- Email: joao@dev.local
+- Nome completo: Joao
+
+**Importante:**
+- ⚠️ **NUNCA use `DEVELOPMENT_MODE=True` em produção!**
+- Em produção, sempre defina `DEVELOPMENT_MODE=False` para forçar autenticação apenas via Active Directory
+- A senha padrão deve ser alterada caso você use modo dev em ambiente compartilhado
 
 ## Estrutura do Projeto
 

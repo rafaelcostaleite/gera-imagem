@@ -23,9 +23,27 @@ async def login(
 ):
     """
     Endpoint de login - Autentica usuário via Active Directory
+    Em modo de desenvolvimento, aceita senha padrão 123456
     """
-    # Autenticar no AD
-    user_info = ad_auth_service.authenticate(form_data.username, form_data.password)
+    user_info = None
+
+    # Modo de desenvolvimento: aceita senha padrão 123456
+    if settings.DEVELOPMENT_MODE:
+        logger.info(f"Modo de desenvolvimento ativo - tentando login para {form_data.username}")
+        if form_data.password == settings.DEV_DEFAULT_PASSWORD:
+            # Autenticação bem-sucedida com senha padrão
+            user_info = {
+                'username': form_data.username,
+                'email': f"{form_data.username}@dev.local",
+                'full_name': form_data.username.title()
+            }
+            logger.info(f"Login em modo dev com senha padrão para {form_data.username}")
+        else:
+            # Tenta autenticar no AD mesmo em dev (para ter opção)
+            user_info = ad_auth_service.authenticate(form_data.username, form_data.password)
+    else:
+        # Modo produção: apenas AD
+        user_info = ad_auth_service.authenticate(form_data.username, form_data.password)
 
     if not user_info:
         raise HTTPException(
@@ -75,9 +93,27 @@ async def login_json(
 ):
     """
     Endpoint de login alternativo que aceita JSON
+    Em modo de desenvolvimento, aceita senha padrão 123456
     """
-    # Autenticar no AD
-    user_info = ad_auth_service.authenticate(login_data.username, login_data.password)
+    user_info = None
+
+    # Modo de desenvolvimento: aceita senha padrão 123456
+    if settings.DEVELOPMENT_MODE:
+        logger.info(f"Modo de desenvolvimento ativo - tentando login para {login_data.username}")
+        if login_data.password == settings.DEV_DEFAULT_PASSWORD:
+            # Autenticação bem-sucedida com senha padrão
+            user_info = {
+                'username': login_data.username,
+                'email': f"{login_data.username}@dev.local",
+                'full_name': login_data.username.title()
+            }
+            logger.info(f"Login em modo dev com senha padrão para {login_data.username}")
+        else:
+            # Tenta autenticar no AD mesmo em dev (para ter opção)
+            user_info = ad_auth_service.authenticate(login_data.username, login_data.password)
+    else:
+        # Modo produção: apenas AD
+        user_info = ad_auth_service.authenticate(login_data.username, login_data.password)
 
     if not user_info:
         raise HTTPException(
